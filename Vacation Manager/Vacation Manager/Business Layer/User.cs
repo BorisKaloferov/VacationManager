@@ -18,11 +18,10 @@ namespace Business_Layer
         [Required]
         public string Surname { get; set; }
 
-        [Required]
-        public Team Team { get; set; }
+        public Team? Team { get; set; }
 
-        [Required]
-        public int TeamId { get; set; }
+        [ForeignKey("Team")]
+        public int? TeamId { get; set; }
 
         public List<Vacation> Vacations { get; set; }
 

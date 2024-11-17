@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,13 +19,14 @@ namespace Business_Layer
         [Required]
         public Project Project { get; set; }
 
-        [Required]
+        [ForeignKey("Project")]
         public int ProjectId { get; set; }
 
         [Required]
         public User Leader { get; set; }
 
         [Required]
+        
         public string LeaderId { get; set;}
 
         public List<User> Users { get; set;}
