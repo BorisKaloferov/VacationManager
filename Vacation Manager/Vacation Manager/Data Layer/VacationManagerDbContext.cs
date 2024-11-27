@@ -17,16 +17,16 @@ namespace Data_Layer
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseSqlServer("Server=LAPTOP-UNHGGLSQ\\SQLEXPRESS;Database=VacationManagerDb;Trusted_Connection=True;TrustServerCertificate=True;");
+            if(!optionsBuilder.IsConfigured)
+            {
+                optionsBuilder.UseSqlServer(Connection.connectionString);
+            }
 
             base.OnConfiguring(optionsBuilder);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
-
-
             modelBuilder.Entity<Team>()
                 .HasOne(t => t.Leader)
                 .WithMany()
@@ -39,6 +39,16 @@ namespace Data_Layer
                 .WithMany(t => t.Users)
                 .HasForeignKey(u => u.TeamId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.UserName)
+                .IsRequired();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Email)
+                .IsRequired();
+            
+            base.OnModelCreating(modelBuilder);
         }
 
         public DbSet<Project> Projects { get; set; }
