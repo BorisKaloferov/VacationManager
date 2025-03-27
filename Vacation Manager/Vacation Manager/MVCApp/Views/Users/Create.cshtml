@@ -1,0 +1,64 @@
+﻿@model Business_Layer.User
+@{
+    ViewData["Title"] = "Create User";
+}
+
+<h2>Create User</h2>
+
+<form asp-action="Create" method="post">
+    <div class="form-group">
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" class="form-control" />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="password">Password</label>
+        <input name="password" type="password" class="form-control" />
+    </div>
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Name">First Name</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="Surname"></label>
+        <input asp-for="Surname" class="form-control" />
+        <span asp-validation-for="Surname" class="text-danger"></span>
+    </div>
+    <!-- Optionally, add a dropdown for Team if available -->
+    @if ((SelectList)ViewData["Teams"] is not null)
+    {
+        <div class="form-group">
+            <label for="teamId">Team</label>
+            <select name="teamId" class="form-control">
+                <option value="">-- None --</option>
+                @foreach (var team in (SelectList)ViewData["Teams"])
+                {
+                    <option value="@team.Value">@team.Text</option>
+                }
+            </select>
+        </div>
+    }
+    
+    <!-- Role selection -->
+    <div class="form-group">
+        <label for="role">Role</label>
+        <select name="role" class="form-control">
+            <option value="CEO">CEO</option>
+            <option value="Developer">Developer</option>
+            <option value="TeamLead">TeamLead</option>
+            <option value="Unassigned">Unassigned</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Create</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,74 +1,71 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.EntityFrameworkCore;
 using Business_Layer;
 using Data_Layer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
-namespace MVCApp.Controllers
+namespace MVCApplication.Controllers
 {
+    [Authorize]
     public class TeamsController : Controller
     {
-        private readonly VacationManagerDbContext _context;
+        private readonly TeamContext _teamContext;
+        private readonly ProjectContext _projectContext;
+        private readonly IdentityContext _identityContext;
 
-        public TeamsController(VacationManagerDbContext context)
+        public TeamsController(TeamContext teamContext, ProjectContext projectContext, IdentityContext identityContext)
         {
-            _context = context;
+            _teamContext = teamContext;
+            _projectContext = projectContext;
+            _identityContext = identityContext;
         }
 
         // GET: Teams
         public async Task<IActionResult> Index()
         {
-            var vacationManagerDbContext = _context.Teams.Include(t => t.Leader).Include(t => t.Project);
-            return View(await vacationManagerDbContext.ToListAsync());
+            var teams = await _teamContext.ReadAllAsync(useNavigationalProperties: true);
+            return View(teams);
         }
 
         // GET: Teams/Details/5
         public async Task<IActionResult> Details(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var team = await _context.Teams
-                .Include(t => t.Leader)
-                .Include(t => t.Project)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var team = await _teamContext.ReadAsync((int)id, useNavigationalProperties: true);
             if (team == null)
-            {
                 return NotFound();
-            }
 
             return View(team);
         }
 
         // GET: Teams/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            ViewData["LeaderId"] = new SelectList(_context.Users, "Id", "Id");
-            ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Description");
+            await LoadNavigationalPropertiesAsync();
             return View();
         }
 
         // POST: Teams/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Id,Name,ProjectId,LeaderId")] Team team)
         {
             if (ModelState.IsValid)
             {
-                _context.Add(team);
-                await _context.SaveChangesAsync();
+                // Load and attach the related Project and Leader using the manager classes.
+                team.Project = await _projectContext.ReadAsync(team.ProjectId, useNavigationalProperties: false);
+                team.Leader = await _identityContext.ReadAsync(team.LeaderId, useNavigationalProperties: false);
+
+                await _teamContext.CreateAsync(team);
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["LeaderId"] = new SelectList(_context.Users, "Id", "Id", team.LeaderId);
-            ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Description", team.ProjectId);
+
+            await LoadNavigationalPropertiesAsync();
             return View(team);
         }
 
@@ -76,54 +73,52 @@ namespace MVCApp.Controllers
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var team = await _context.Teams.FindAsync(id);
+            var team = await _teamContext.ReadAsync((int)id, useNavigationalProperties: true);
             if (team == null)
-            {
                 return NotFound();
-            }
-            ViewData["LeaderId"] = new SelectList(_context.Users, "Id", "Id", team.LeaderId);
-            ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Description", team.ProjectId);
+
+            await LoadNavigationalPropertiesAsync();
             return View(team);
         }
 
         // POST: Teams/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("Id,Name,ProjectId,LeaderId")] Team team)
         {
             if (id != team.Id)
-            {
                 return NotFound();
-            }
 
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(team);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!TeamExists(team.Id))
-                    {
+                    // Retrieve the existing team including its navigational properties.
+                    var teamToUpdate = await _teamContext.ReadAsync(id, useNavigationalProperties: true, isReadOnly: false);
+                    if (teamToUpdate == null)
                         return NotFound();
-                    }
+
+                    // Update scalar properties.
+                    teamToUpdate.Name = team.Name;
+                    // Update related entities.
+                    teamToUpdate.Project = await _projectContext.ReadAsync(team.ProjectId, useNavigationalProperties: false);
+                    teamToUpdate.Leader = await _identityContext.ReadAsync(team.LeaderId, useNavigationalProperties: false);
+
+                    await _teamContext.UpdateAsync(teamToUpdate, useNavigationalProperties: true);
+                }
+                catch (Exception)
+                {
+                    if (!await TeamExists(team.Id))
+                        return NotFound();
                     else
-                    {
                         throw;
-                    }
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["LeaderId"] = new SelectList(_context.Users, "Id", "Id", team.LeaderId);
-            ViewData["ProjectId"] = new SelectList(_context.Projects, "Id", "Description", team.ProjectId);
+
+            await LoadNavigationalPropertiesAsync();
             return View(team);
         }
 
@@ -131,18 +126,11 @@ namespace MVCApp.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null)
-            {
                 return NotFound();
-            }
 
-            var team = await _context.Teams
-                .Include(t => t.Leader)
-                .Include(t => t.Project)
-                .FirstOrDefaultAsync(m => m.Id == id);
+            var team = await _teamContext.ReadAsync((int)id, useNavigationalProperties: true);
             if (team == null)
-            {
                 return NotFound();
-            }
 
             return View(team);
         }
@@ -152,19 +140,24 @@ namespace MVCApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var team = await _context.Teams.FindAsync(id);
-            if (team != null)
-            {
-                _context.Teams.Remove(team);
-            }
-
-            await _context.SaveChangesAsync();
+            await _teamContext.DeleteAsync(id);
             return RedirectToAction(nameof(Index));
         }
 
-        private bool TeamExists(int id)
+        private async Task<bool> TeamExists(int id)
         {
-            return _context.Teams.Any(e => e.Id == id);
+            return (await _teamContext.ReadAsync(id)) != null;
+        }
+
+        /// <summary>
+        /// Loads available Projects and Users into ViewData for dropdown lists in Create and Edit views.
+        /// </summary>
+        private async Task LoadNavigationalPropertiesAsync()
+        {
+            var projects = await _projectContext.ReadAllAsync(useNavigationalProperties: false);
+            var users = await _identityContext.ReadAllAsync(useNavigationalProperties: false);
+            ViewData["ProjectId"] = new SelectList(projects, "Id", "Name");
+            ViewData["LeaderId"] = new SelectList(users, "Id", "Name");
         }
     }
 }

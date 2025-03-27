@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Data_Layer
 {
-    internal interface IDb<T, K>
+    public interface IDb<T, K>
     {
         Task CreateAsync(T entity);
 

@@ -396,3 +396,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+/Vacation Manager/Vacation Manager/Data Layer/Connection.cs

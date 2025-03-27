@@ -1,9 +1,10 @@
 ﻿using Business_Layer;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 namespace Data_Layer
 {
-    public class VacationManagerDbContext : DbContext 
+    public class VacationManagerDbContext : IdentityDbContext<User>
     {
         public VacationManagerDbContext() : base()
         {
@@ -54,8 +55,6 @@ namespace Data_Layer
         public DbSet<Project> Projects { get; set; }
 
         public DbSet<Vacation> Vacations { get; set; }
-
-        public DbSet<User> Users { get; set; }
 
         public DbSet<Team> Teams { get; set; }
     }

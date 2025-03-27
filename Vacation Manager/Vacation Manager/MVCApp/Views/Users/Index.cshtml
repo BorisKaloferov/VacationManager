@@ -1,0 +1,62 @@
+﻿@inject Microsoft.AspNetCore.Identity.UserManager<Business_Layer.User> UserManager
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+
+@model IEnumerable<Business_Layer.User>
+@{
+    ViewData["Title"] = "Users";
+}
+
+<h2>Users</h2>
+
+<form asp-action="Index" method="get" class="form-inline mb-3">
+    <div class="form-group mr-2">
+        <input type="text" name="searchFirstName" class="form-control" placeholder="First Name" value="@HttpContextAccessor.HttpContext.Request.Query["searchFirstName"]" />
+    </div>
+    <div class="form-group mr-2">
+        <input type="text" name="searchSurname" class="form-control" placeholder="Surname" value="@HttpContextAccessor.HttpContext.Request.Query["searchSurname"]" />
+    </div>
+    <div class="form-group mr-2">
+        <input type="text" name="searchRole" class="form-control" placeholder="Role" value="@HttpContextAccessor.HttpContext.Request.Query["searchRole"]" />
+    </div>
+    <button type="submit" class="btn btn-primary">Filter</button>
+    <a asp-action="Index" class="btn btn-secondary ml-2">Clear</a>
+</form>
+
+<p>
+    <a asp-action="Create" class="btn btn-success">Create New User</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>First Name</th>
+            <th>Surname</th>
+            <th>Team</th>
+            <th>Role</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            var roles = await UserManager.GetRolesAsync(user);
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.Email</td>
+                <td>@user.Name</td>
+                <td>@user.Surname</td>
+                <td>@(user.Team != null ? user.Team.Name : "None")</td>
+                <td>
+                    @(roles.Any() ? string.Join(", ", roles) : "None")
+                </td>
+                <td>
+                    <a asp-action="Details" asp-route-id="@user.Id">Details</a> |
+                    <a asp-action="Edit" asp-route-id="@user.Id">Edit</a> |
+                    <a asp-action="Delete" asp-route-id="@user.Id">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

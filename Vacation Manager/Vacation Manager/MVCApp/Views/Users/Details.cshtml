@@ -1,0 +1,38 @@
+﻿@model Business_Layer.User
+@inject Microsoft.AspNetCore.Identity.UserManager<Business_Layer.User> UserManager
+@{
+    ViewData["Title"] = "User Details";
+    // Get roles for the user from the model
+    var roles = await UserManager.GetRolesAsync(Model);
+}
+
+<h2>User Details</h2>
+
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">Username</dt>
+        <dd class="col-sm-10">@Model.UserName</dd>
+
+        <dt class="col-sm-2">Email</dt>
+        <dd class="col-sm-10">@Model.Email</dd>
+
+        <dt class="col-sm-2">First Name</dt>
+        <dd class="col-sm-10">@Model.Name</dd>
+
+        <dt class="col-sm-2">Surname</dt>
+        <dd class="col-sm-10">@Model.Surname</dd>
+
+        <dt class="col-sm-2">Team</dt>
+        <dd class="col-sm-10">@((Model.Team != null) ? Model.Team.Name : "None")</dd>
+
+        <dt class="col-sm-2">Roles</dt>
+        <dd class="col-sm-10">
+            @(roles.Any() ? string.Join(", ", roles) : "None")
+        </dd>
+    </dl>
+</div>
+
+<p>
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Edit</a>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</p>

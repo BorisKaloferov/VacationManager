@@ -1,0 +1,85 @@
+﻿@model Business_Layer.User
+@{
+    ViewData["Title"] = "Edit User";
+}
+
+<h2>Edit User</h2>
+
+<form asp-action="Edit" method="post">
+    <input type="hidden" asp-for="Id" />
+
+    <div class="form-group">
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" class="form-control" />
+        <span asp-validation-for="UserName" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" readonly="readonly" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Name">First Name</label>
+        <input asp-for="Name" class="form-control" />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+
+    <div class="form-group">
+        <label asp-for="Surname"></label>
+        <input asp-for="Surname" class="form-control" />
+        <span asp-validation-for="Surname" class="text-danger"></span>
+    </div>
+
+    <!-- Dropdown for Team -->
+    @if ((SelectList)ViewData["Teams"] is not null)
+    {
+        <div class="form-group">
+            <label for="teamId">Team</label>
+            <select name="teamId" class="form-control">
+                <option value="">-- None --</option>
+                @foreach (var team in (SelectList)ViewData["Teams"])
+                {
+                    if (team.Value == Model.TeamId.ToString())
+                    {
+                        <option value="@team.Value" selected>@team.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@team.Value">@team.Text</option>
+                    }
+                }
+            </select>
+        </div>
+    }
+
+    <!-- Dropdown for Role -->
+    @if ((SelectList)ViewData["Roles"] is not null)
+    {
+        <div class="form-group">
+            <label for="role">Role</label>
+            <select name="role" class="form-control">
+                <option value="">-- None --</option>
+                @foreach (var role in (SelectList)ViewData["Roles"])
+                {
+                    if (role.Selected)
+                    {
+                        <option value="@role.Value" selected>@role.Text</option>
+                    }
+                    else
+                    {
+                        <option value="@role.Value">@role.Text</option>
+                    }
+                }
+            </select>
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary">Save</button>
+    <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

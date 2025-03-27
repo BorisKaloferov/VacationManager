@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Data_Layer
 {
-	internal class TeamContext : IDb<Team, int>
+	public class TeamContext : IDb<Team, int>
 	{
 		private readonly VacationManagerDbContext _vacationManagerDbContext;
 
